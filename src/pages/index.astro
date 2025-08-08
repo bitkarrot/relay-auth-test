@@ -1,11 +1,156 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
 <Layout>
-	<Welcome />
+  <style>
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      font-family: system-ui, sans-serif;
+    }
+    
+    h1 {
+      text-align: center;
+      color: #1e293b;
+      margin-bottom: 2rem;
+    }
+    
+    .page-grid {
+      display: grid;
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    
+    .page-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 1.5rem;
+      background: #f8fafc;
+      transition: all 0.2s ease;
+    }
+    
+    .page-card:hover {
+      border-color: #3b82f6;
+      background: #f1f5f9;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .page-link {
+      display: inline-block;
+      background: #3b82f6;
+      color: white;
+      text-decoration: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 6px;
+      font-weight: 500;
+      margin-bottom: 1rem;
+      transition: background 0.2s ease;
+    }
+    
+    .page-link:hover {
+      background: #2563eb;
+    }
+    
+    .page-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #1e293b;
+      margin: 0 0 0.5rem 0;
+    }
+    
+    .page-description {
+      color: #64748b;
+      line-height: 1.6;
+      margin: 0;
+    }
+    
+    .intro {
+      text-align: center;
+      color: #64748b;
+      margin-bottom: 2rem;
+      font-size: 1.1rem;
+    }
+    
+    .docs-link {
+      display: inline-block;
+      color: #3b82f6;
+      text-decoration: none;
+      font-weight: 500;
+      border: 1px solid #3b82f6;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      margin: 0.5rem 0;
+      transition: all 0.2s ease;
+    }
+    
+    .docs-link:hover {
+      background: #3b82f6;
+      color: white;
+    }
+    
+    .docs-section {
+      text-align: center;
+      margin-bottom: 2rem;
+      padding: 1rem;
+      background: #f1f5f9;
+      border-radius: 6px;
+      border-left: 4px solid #3b82f6;
+    }
+  </style>
+
+  <div class="container">
+    <h1>🔐 Nostr Authentication Examples</h1>
+    <p class="intro">
+      Explore different approaches to Nostr authentication and relay integration
+    </p>
+    
+    <div class="docs-section">
+      <p style="margin: 0 0 0.5rem 0; color: #64748b;">📚 Learn about the protocol:</p>
+      <a href="https://nostrhub.io/42/" target="_blank" class="docs-link">
+        📖 NIP-42 Authentication Specification
+      </a>
+    </div>
+    
+    <div class="page-grid">
+      <div class="page-card">
+        <a href="/nip.html" class="page-link">📋 NIP-42 AUTH Demo</a>
+        <h3 class="page-title">Raw HTML - NIP-42 AUTH with NIP-07 Extension</h3>
+        <p class="page-description">
+          Raw HTML page with vanilla JavaScript that connects to ws://localhost:3334 using a NIP-07 browser extension 
+          (like Alby or nos2x), performs NIP-42 authentication, and publishes a kind 30078 event.
+        </p>
+      </div>
+      
+      <div class="page-card">
+        <a href="/nip7" class="page-link">🔌 NIP-07 Example</a>
+        <h3 class="page-title">Astro - Basic Vanilla js Integration</h3>
+        <p class="page-description">
+          Demonstrates direct NIP-07 browser extension integration for Nostr authentication. 
+          Shows how to connect with extensions like Alby, nos2x, or other Nostr signers without additional abstractions.
+        </p>
+      </div>
+      
+      <div class="page-card">
+        <a href="/nostr-auth-example" class="page-link">⚡ Advanced Auth Example</a>
+        <h3 class="page-title">Astro - TypeScript - Full-Featured Authentication</h3>
+        <p class="page-description">
+          Complete authentication system with advanced features like relay management, 
+          event publishing, subscription handling, and comprehensive error handling. Best for production use.
+        </p>
+      </div>
+      
+      <div class="page-card">
+        <a href="/simple-nostr-example" class="page-link">🚀 Simple Auth Example</a>
+        <h3 class="page-title">Astro - Minimal Authentication</h3>
+        <p class="page-description">
+          Streamlined example using the reusable NostrAuth composable. 
+          Perfect for getting started quickly with basic authentication and publishing functionality.
+        </p>
+      </div>
+    </div>
+  </div>
 </Layout>
