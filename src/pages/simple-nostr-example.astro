@@ -5,15 +5,6 @@ import Layout from '../layouts/Layout.astro';
 // Get relay URL from environment variable
 const relayUrl = process.env.HIVETALK_RELAYS || 'ws://localhost:3334'
 ---
-
-<!-- <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simple Nostr AUTH Example</title>
-</head>
-<body> -->
-
 <Layout>
   <style>
     body {
@@ -94,7 +85,7 @@ const relayUrl = process.env.HIVETALK_RELAYS || 'ws://localhost:3334'
     <div id="result" class="hidden"></div>
   </div>
 
-  <script is:inline>
+  <script>
     import { createNostrAuth, NostrAuthUtils } from '../composables/useNostrAuth.ts'
 
     // Initialize the auth system
@@ -104,13 +95,13 @@ const relayUrl = process.env.HIVETALK_RELAYS || 'ws://localhost:3334'
     })
 
     // Get DOM elements
-    const statusEl = document.getElementById('status')
-    const authBtn = document.getElementById('auth-btn')
-    const publishForm = document.getElementById('publish-form')
-    const disconnectBtn = document.getElementById('disconnect-btn')
-    const messageInput = document.getElementById('message-input')
-    const publishBtn = document.getElementById('publish-btn')
-    const resultEl = document.getElementById('result')
+    const statusEl = document.getElementById('status') as HTMLElement
+    const authBtn = document.getElementById('auth-btn') as HTMLButtonElement
+    const publishForm = document.getElementById('publish-form') as HTMLElement
+    const disconnectBtn = document.getElementById('disconnect-btn') as HTMLButtonElement
+    const messageInput = document.getElementById('message-input') as HTMLInputElement
+    const publishBtn = document.getElementById('publish-btn') as HTMLButtonElement
+    const resultEl = document.getElementById('result') as HTMLElement
 
     // Create UI manager for automatic state handling
     const ui = NostrAuthUtils.createUIManager(auth, {
@@ -186,6 +177,3 @@ const relayUrl = process.env.HIVETALK_RELAYS || 'ws://localhost:3334'
     })
   </script>
 </Layout>
-
-<!-- </body>
-</html> -->
