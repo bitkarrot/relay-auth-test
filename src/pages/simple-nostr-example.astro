@@ -94,23 +94,23 @@ const relayUrl = process.env.HIVETALK_RELAYS || 'ws://localhost:3334'
     <div id="result" class="hidden"></div>
   </div>
 
-  <script>
+  <script is:inline>
     import { createNostrAuth, NostrAuthUtils } from '../composables/useNostrAuth.ts'
 
     // Initialize the auth system
     const auth = createNostrAuth({
-      relayUrl: '{relayUrl}',
+      relayUrl: 'ws://localhost:3334',
       timeout: 10000
     })
 
     // Get DOM elements
-    const statusEl = document.getElementById('status') as HTMLElement
-    const authBtn = document.getElementById('auth-btn') as HTMLButtonElement
-    const publishForm = document.getElementById('publish-form') as HTMLElement
-    const disconnectBtn = document.getElementById('disconnect-btn') as HTMLButtonElement
-    const messageInput = document.getElementById('message-input') as HTMLInputElement
-    const publishBtn = document.getElementById('publish-btn') as HTMLButtonElement
-    const resultEl = document.getElementById('result') as HTMLElement
+    const statusEl = document.getElementById('status')
+    const authBtn = document.getElementById('auth-btn')
+    const publishForm = document.getElementById('publish-form')
+    const disconnectBtn = document.getElementById('disconnect-btn')
+    const messageInput = document.getElementById('message-input')
+    const publishBtn = document.getElementById('publish-btn')
+    const resultEl = document.getElementById('result')
 
     // Create UI manager for automatic state handling
     const ui = NostrAuthUtils.createUIManager(auth, {

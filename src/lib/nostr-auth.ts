@@ -1,5 +1,5 @@
 // src/lib/nostr-auth.ts
-import { SimplePool, Event, getEventHash, getSignature, nip42 } from 'nostr-tools'
+import { SimplePool, getEventHash, nip42 } from 'nostr-tools'
 import type { NostrEvent } from 'nostr-tools'
 
 export interface AuthConfig {
@@ -30,8 +30,8 @@ export class NostrAuthService {
     }
 
     return {
-      getPublicKey: () => window.nostr.getPublicKey(),
-      signEvent: (event) => window.nostr.signEvent(event)
+      getPublicKey: () => window.nostr!.getPublicKey(),
+      signEvent: (event) => window.nostr!.signEvent(event)
     }
   }
 
