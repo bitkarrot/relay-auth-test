@@ -1,0 +1,185 @@
+---
+// src/pages/simple-nostr-example.astro
+
+// Get relay URL from environment variable
+const relayUrl = process.env.HIVETALK_RELAYS || 'ws://localhost:3334'
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Nostr AUTH Example</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .container {
+      background: #f8fafc;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+    .button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    .button:hover { background: #2563eb; }
+    .button:disabled { 
+      background: #9ca3af; 
+      cursor: not-allowed; 
+    }
+    .status {
+      padding: 10px;
+      border-radius: 6px;
+      margin: 10px 0;
+    }
+    .success { background: #d1fae5; color: #065f46; }
+    .error { background: #fee2e2; color: #991b1b; }
+    .info { background: #dbeafe; color: #1e40af; }
+    .form-group {
+      margin: 15px 0;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+    }
+    .hidden { display: none; }
+    .result {
+      background: #f1f5f9;
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 15px;
+      font-family: monospace;
+      font-size: 12px;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📱 Simple Nostr Example</h1>
+    <p>Demonstrates the reusable NostrAuth composable.</p>
+    
+    <div class="status info" id="status">Loading...</div>
+    
+    <button id="auth-btn" class="button">🔑 Authenticate</button>
+    
+    <div id="publish-form" class="hidden">
+      <h3>Quick Publish</h3>
+      <div class="form-group">
+        <input type="text" id="message-input" placeholder="Enter your message">
+      </div>
+      <button id="publish-btn" class="button">📤 Publish</button>
+    </div>
+    
+    <button id="disconnect-btn" class="button hidden" style="background: #ef4444;">
+      🔌 Disconnect
+    </button>
+    
+    <div id="result" class="hidden"></div>
+  </div>
+
+  <script>
+    import { createNostrAuth, NostrAuthUtils } from '../composables/useNostrAuth.ts'
+
+    // Initialize the auth system
+    const auth = createNostrAuth({
+      relayUrl: '{relayUrl}',
+      timeout: 10000
+    })
+
+    // Get DOM elements
+    const statusEl = document.getElementById('status') as HTMLElement
+    const authBtn = document.getElementById('auth-btn') as HTMLButtonElement
+    const publishForm = document.getElementById('publish-form') as HTMLElement
+    const disconnectBtn = document.getElementById('disconnect-btn') as HTMLButtonElement
+    const messageInput = document.getElementById('message-input') as HTMLInputElement
+    const publishBtn = document.getElementById('publish-btn') as HTMLButtonElement
+    const resultEl = document.getElementById('result') as HTMLElement
+
+    // Create UI manager for automatic state handling
+    const ui = NostrAuthUtils.createUIManager(auth, {
+      statusElement: statusEl,
+      authButton: authBtn,
+      publishSection: publishForm,
+      disconnectButton: disconnectBtn
+    })
+
+    // Custom event handlers
+    authBtn.addEventListener('click', async () => {
+      await ui.authenticate()
+    })
+
+    publishBtn.addEventListener('click', async () => {
+      const message = messageInput.value.trim()
+      if (!message) {
+        statusEl.className = 'status error'
+        statusEl.textContent = '❌ Please enter a message'
+        return
+      }
+
+      publishBtn.disabled = true
+      publishBtn.textContent = '📤 Publishing...'
+
+      try {
+        // Generate a unique d-tag with timestamp
+        const dTag = `msg-${Date.now()}`
+        
+        // Publish with some additional tags
+        const eventId = await ui.publishEvent(message, dTag, [
+          ['t', 'example'],
+          ['client', 'astro-app']
+        ])
+
+        if (eventId) {
+          resultEl.className = 'result'
+          resultEl.innerHTML = `
+            <strong>✅ Published Successfully!</strong><br>
+            Event ID: ${eventId}<br>
+            D-Tag: ${dTag}<br>
+            Message: ${message}
+          `
+          resultEl.classList.remove('hidden')
+          messageInput.value = ''
+        }
+
+      } catch (error) {
+        statusEl.className = 'status error'
+        statusEl.textContent = `❌ Publish failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      } finally {
+        publishBtn.disabled = false
+        publishBtn.textContent = '📤 Publish'
+      }
+    })
+
+    disconnectBtn.addEventListener('click', async () => {
+      await ui.disconnect()
+      resultEl.classList.add('hidden')
+      messageInput.value = ''
+    })
+
+    // Initialize UI state
+    window.addEventListener('load', () => {
+      if (!auth.isNip07Available()) {
+        statusEl.className = 'status error'
+        statusEl.textContent = '❌ NIP-07 extension not found. Please install a Nostr extension.'
+        authBtn.disabled = true
+      } else {
+        statusEl.className = 'status info'
+        statusEl.textContent = '✅ Ready to authenticate with Nostr!'
+      }
+    })
+  </script>
+</body>
+</html>

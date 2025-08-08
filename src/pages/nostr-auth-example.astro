@@ -1,0 +1,298 @@
+---
+// src/pages/nostr-auth-example.astro
+
+// Get relay URL from environment variable
+const relayUrl = process.env.HIVETALK_RELAYS || 'ws://localhost:3334'
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nostr NIP-42 AUTH Example</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .button {
+      background: #7c3aed;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 10px 0;
+      font-size: 16px;
+    }
+    .button:hover {
+      background: #6d28d9;
+    }
+    .button:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+    .status {
+      padding: 10px;
+      border-radius: 6px;
+      margin: 10px 0;
+    }
+    .success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #10b981;
+    }
+    .error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #ef4444;
+    }
+    .info {
+      background: #dbeafe;
+      color: #1e40af;
+      border: 1px solid #3b82f6;
+    }
+    .form-group {
+      margin: 15px 0;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .form-group input, .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .form-group textarea {
+      height: 100px;
+      resize: vertical;
+    }
+    .relay-info {
+      background: #f3f4f6;
+      padding: 15px;
+      border-radius: 6px;
+      margin: 15px 0;
+    }
+    .event-id {
+      background: #f9fafb;
+      padding: 10px;
+      border-radius: 6px;
+      font-family: monospace;
+      word-break: break-all;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔐 Nostr NIP-42 AUTH Example</h1>
+    <p>This example demonstrates NIP-42 authentication followed by publishing a kind 30078 event.</p>
+    
+    <div class="relay-info">
+      <strong>Relay:</strong> <code id="relay-url">{relayUrl}</code>
+    </div>
+
+    <div id="status-container"></div>
+
+    <button id="auth-btn" class="button">🔑 Authenticate with Relay</button>
+    
+    <div id="publish-section" style="display: none;">
+      <h2>Publish Kind 30078 Event</h2>
+      
+      <div class="form-group">
+        <label for="d-tag">D Tag (identifier):</label>
+        <input type="text" id="d-tag" placeholder="my-unique-identifier" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="event-content">Content:</label>
+        <textarea id="event-content" placeholder="Enter your event content here..."></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label for="additional-tags">Additional Tags (JSON format, optional):</label>
+        <textarea id="additional-tags" placeholder='[["tag1", "value1"], ["tag2", "value2"]]'></textarea>
+      </div>
+      
+      <button id="publish-btn" class="button">📤 Publish Event</button>
+      
+      <div id="event-result"></div>
+    </div>
+
+    <button id="disconnect-btn" class="button" style="background: #ef4444; display: none;">🔌 Disconnect</button>
+  </div>
+
+  <script>
+    // Import the NostrAuthService
+    import { NostrAuthService } from '../lib/nostr-auth.ts'
+
+    // Initialize variables
+    let authService: NostrAuthService | null = null
+    const relayUrl = document.getElementById('relay-url')?.textContent || 'ws://localhost:3334'
+
+    // DOM elements
+    const authBtn = document.getElementById('auth-btn') as HTMLButtonElement
+    const publishBtn = document.getElementById('publish-btn') as HTMLButtonElement
+    const disconnectBtn = document.getElementById('disconnect-btn') as HTMLButtonElement
+    const publishSection = document.getElementById('publish-section') as HTMLDivElement
+    const statusContainer = document.getElementById('status-container') as HTMLDivElement
+    const eventResult = document.getElementById('event-result') as HTMLDivElement
+
+    // Form elements
+    const dTagInput = document.getElementById('d-tag') as HTMLInputElement
+    const contentInput = document.getElementById('event-content') as HTMLTextAreaElement
+    const tagsInput = document.getElementById('additional-tags') as HTMLTextAreaElement
+
+    // Status message helper
+    function showStatus(message: string, type: 'success' | 'error' | 'info') {
+      statusContainer.innerHTML = `<div class="status ${type}">${message}</div>`
+    }
+
+    // Initialize auth service
+    function initAuthService() {
+      authService = new NostrAuthService({
+        relayUrl: relayUrl,
+        timeout: 15000
+      })
+    }
+
+    // Authentication handler
+    async function handleAuth() {
+      if (!authService) {
+        initAuthService()
+      }
+
+      try {
+        authBtn.disabled = true
+        authBtn.textContent = '🔄 Authenticating...'
+        showStatus('Connecting to relay and performing NIP-42 authentication...', 'info')
+
+        const success = await authService!.authenticate()
+        
+        if (success) {
+          showStatus('✅ Authentication successful! You can now publish events.', 'success')
+          authBtn.style.display = 'none'
+          publishSection.style.display = 'block'
+          disconnectBtn.style.display = 'inline-block'
+        }
+
+      } catch (error) {
+        console.error('Authentication failed:', error)
+        showStatus(`❌ Authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error')
+        authBtn.disabled = false
+        authBtn.textContent = '🔑 Retry Authentication'
+      }
+    }
+
+    // Publish event handler
+    async function handlePublish() {
+      if (!authService || !authService.getAuthStatus()) {
+        showStatus('❌ Must authenticate first', 'error')
+        return
+      }
+
+      const dTag = dTagInput.value.trim()
+      const content = contentInput.value.trim()
+      const additionalTagsText = tagsInput.value.trim()
+
+      if (!dTag) {
+        showStatus('❌ D tag is required', 'error')
+        return
+      }
+
+      try {
+        publishBtn.disabled = true
+        publishBtn.textContent = '📤 Publishing...'
+        showStatus('Publishing kind 30078 event...', 'info')
+
+        // Parse additional tags if provided
+        let additionalTags: string[][] = []
+        if (additionalTagsText) {
+          try {
+            additionalTags = JSON.parse(additionalTagsText)
+            if (!Array.isArray(additionalTags)) {
+              throw new Error('Tags must be an array')
+            }
+          } catch (e) {
+            showStatus('❌ Invalid JSON format for additional tags', 'error')
+            publishBtn.disabled = false
+            publishBtn.textContent = '📤 Publish Event'
+            return
+          }
+        }
+
+        const eventId = await authService.publishKind30078Event(content, dTag, additionalTags)
+        
+        showStatus('✅ Event published successfully!', 'success')
+        eventResult.innerHTML = `
+          <h3>Published Event</h3>
+          <div class="event-id">
+            <strong>Event ID:</strong> ${eventId}
+          </div>
+          <div class="event-id">
+            <strong>D Tag:</strong> ${dTag}
+          </div>
+        `
+
+        // Reset form
+        dTagInput.value = ''
+        contentInput.value = ''
+        tagsInput.value = ''
+
+      } catch (error) {
+        console.error('Publish failed:', error)
+        showStatus(`❌ Publish failed: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error')
+      } finally {
+        publishBtn.disabled = false
+        publishBtn.textContent = '📤 Publish Event'
+      }
+    }
+
+    // Disconnect handler
+    async function handleDisconnect() {
+      if (authService) {
+        await authService.disconnect()
+        showStatus('🔌 Disconnected from relay', 'info')
+        
+        // Reset UI
+        authBtn.style.display = 'inline-block'
+        authBtn.disabled = false
+        authBtn.textContent = '🔑 Authenticate with Relay'
+        publishSection.style.display = 'none'
+        disconnectBtn.style.display = 'none'
+        eventResult.innerHTML = ''
+        
+        authService = null
+      }
+    }
+
+    // Event listeners
+    authBtn.addEventListener('click', handleAuth)
+    publishBtn.addEventListener('click', handlePublish)
+    disconnectBtn.addEventListener('click', handleDisconnect)
+
+    // Check for NIP-07 extension on load
+    window.addEventListener('load', () => {
+      if (!window.nostr) {
+        showStatus('⚠️ No NIP-07 extension detected. Please install a Nostr extension like Alby or nos2x.', 'error')
+        authBtn.disabled = true
+      } else {
+        showStatus('✅ NIP-07 extension detected. Ready to authenticate!', 'info')
+      }
+    })
+  </script>
+</body>
+</html>

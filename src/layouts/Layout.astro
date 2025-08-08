@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<!-- <meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Astro Basics</title> -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIP-42 AUTH with NIP-07 Extension Demo</title>
+	</head>
+
+	<script 
+    src="https://www.unpkg.com/nostr-login@latest/dist/unpkg.js" 
+    data-no-banner="false" 
+    data-methods="connect,extension,local"
+    data-perms="sign_event:1,sign_event:0,sign_event:30312,sign_event:30313,sign_event:22242, sign_event:10002, sign_event:5, nip04_encrypt"
+    data-theme="default" 
+    data-dark-mode="true"
+    is:inline
+    async
+  ></script>
+  <script src="https://cdn.jsdelivr.net/npm/nostr-tools@2.12.0/lib/nostr.bundle.min.js"></script>
+
+
+	<body>
+		<slot />
+	</body>
+</html>
+
+<style>
+	html,
+	body {
+		margin: 0;
+		width: 100%;
+		height: 100%;
+	}
+</style>
