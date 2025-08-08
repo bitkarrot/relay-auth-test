@@ -14,8 +14,9 @@ export interface NostrSigner {
 
 export class NostrAuthService {
   private pool: SimplePool
-  private relay: any = null
+  private relay: WebSocket | null = null
   private isAuthenticated = false
+  private authChallenge: string | null = null
   
   constructor(private config: AuthConfig) {
     this.pool = new SimplePool()
@@ -43,63 +44,97 @@ export class NostrAuthService {
       const signer = await this.getNip07Signer()
       const pubkey = await signer.getPublicKey()
       
-      // Connect to relay and keep the connection
-      this.relay = await this.pool.ensureRelay(this.config.relayUrl)
-      
-      console.log('Connected to relay:', this.config.relayUrl)
+      console.log('🔌 Connecting to relay:', this.config.relayUrl)
 
-      // Listen for AUTH challenges
+      // Connect using direct WebSocket like in nip7.astro
       return new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
           reject(new Error('Authentication timeout'))
         }, this.config.timeout || 10000)
 
-        this.relay.on('auth', async (challenge: string) => {
-          try {
-            console.log('Received AUTH challenge:', challenge)
+        try {
+          this.relay = new WebSocket(this.config.relayUrl)
+          
+          this.relay.onopen = () => {
+            console.log('✅ Connected to relay')
             
-            // Create AUTH event according to NIP-42
-            const authEvent = {
-              kind: 22242,
-              created_at: Math.floor(Date.now() / 1000),
-              tags: [
-                ['relay', this.config.relayUrl],
-                ['challenge', challenge]
-              ],
-              content: '',
-              pubkey
-            }
+            // Send a REQ to potentially trigger AUTH requirement
+            const reqMsg = JSON.stringify(['REQ', 'auth_trigger', { kinds: [1], limit: 1 }])
+            this.relay!.send(reqMsg)
+            console.log('📤 Sent test REQ to trigger auth requirement')
+          }
+          
+          this.relay.onmessage = async (event) => {
+            try {
+              const message = JSON.parse(event.data)
+              console.log(`📥 Received: ${JSON.stringify(message)}`)
+              
+              if (message[0] === 'AUTH') {
+                // Handle AUTH challenge
+                this.authChallenge = message[1]
+                console.log(`🔐 Received AUTH challenge: ${this.authChallenge}`)
+                
+                // Create AUTH event according to NIP-42
+                const authEvent = {
+                  kind: 22242,
+                  created_at: Math.floor(Date.now() / 1000),
+                  tags: [
+                    ['relay', this.config.relayUrl],
+                    ['challenge', this.authChallenge]
+                  ],
+                  content: '',
+                  pubkey
+                }
 
-            // Sign the AUTH event
-            const signedAuthEvent = await signer.signEvent(authEvent)
-            console.log('Signed AUTH event:', signedAuthEvent)
+                // Sign the AUTH event
+                const signedAuthEvent = await signer.signEvent(authEvent)
+                console.log('Signed AUTH event:', signedAuthEvent)
 
-            // Send AUTH response
-            this.relay.send(['AUTH', signedAuthEvent])
-            
-            // Wait for OK response
-            this.relay.on('ok', (eventId: string, success: boolean, message: string) => {
-              if (success) {
-                console.log('Authentication successful')
+                // Send AUTH response
+                const authMsg = JSON.stringify(['AUTH', signedAuthEvent])
+                this.relay!.send(authMsg)
+                console.log('📤 Sent AUTH response')
+                
+              } else if (message[0] === 'OK' && message[2] === true && message[1].length === 64) {
+                // AUTH event was accepted
+                console.log('✅ Authentication successful!')
                 this.isAuthenticated = true
                 clearTimeout(timeout)
                 resolve(true)
-              } else {
-                console.error('Authentication failed:', message)
-                clearTimeout(timeout)
-                reject(new Error(`Authentication failed: ${message}`))
+                
+              } else if (message[0] === 'CLOSED') {
+                if (message[2] && message[2].startsWith('auth-required')) {
+                  console.log('🔒 Auth required for this operation')
+                }
+              } else if (message[0] === 'OK' && message[2] === false) {
+                console.log(`❌ Event rejected: ${message[3] || 'Unknown error'}`)
+                if (message[3] && message[3].includes('auth-required')) {
+                  console.log('🔒 Publishing requires authentication')
+                  clearTimeout(timeout)
+                  reject(new Error('Authentication required but failed'))
+                }
               }
-            })
-
-          } catch (error) {
-            console.error('Error during AUTH:', error)
-            clearTimeout(timeout)
-            reject(error)
+            } catch (parseError) {
+              console.error('Error parsing message:', parseError)
+            }
           }
-        })
-
-        // Trigger potential AUTH challenge by subscribing
-        this.relay.send(['REQ', 'auth-trigger', { limit: 1 }])
+          
+          this.relay.onerror = (error) => {
+            console.error(`❌ WebSocket error:`, error)
+            clearTimeout(timeout)
+            reject(new Error('WebSocket connection failed'))
+          }
+          
+          this.relay.onclose = () => {
+            console.log('🔌 Connection closed')
+            this.isAuthenticated = false
+          }
+          
+        } catch (error) {
+          console.error(`❌ Connection error:`, error)
+          clearTimeout(timeout)
+          reject(error)
+        }
       })
 
     } catch (error) {
@@ -136,27 +171,46 @@ export class NostrAuthService {
       const signedEvent = await signer.signEvent(event)
       console.log('Publishing kind 30078 event:', signedEvent)
 
-      // Publish using the same authenticated connection
+      // Publish using the same authenticated WebSocket connection
       return new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
           reject(new Error('Publish timeout'))
         }, this.config.timeout || 10000)
 
-        this.relay.on('ok', (eventId: string, success: boolean, message: string) => {
-          if (eventId === signedEvent.id) {
-            clearTimeout(timeout)
-            if (success) {
-              console.log('Event published successfully:', eventId)
-              resolve(eventId)
-            } else {
-              console.error('Event publish failed:', message)
-              reject(new Error(`Publish failed: ${message}`))
-            }
+        // Set up message handler for this publish operation
+        const originalOnMessage = this.relay!.onmessage
+        
+        this.relay!.onmessage = (event) => {
+          // Call original handler first
+          if (originalOnMessage) {
+            originalOnMessage.call(this.relay, event)
           }
-        })
+          
+          try {
+            const message = JSON.parse(event.data)
+            console.log(`📥 Publish response: ${JSON.stringify(message)}`)
+            
+            if (message[0] === 'OK' && message[1] === signedEvent.id) {
+              clearTimeout(timeout)
+              if (message[2] === true) {
+                console.log('Event published successfully:', signedEvent.id)
+                resolve(signedEvent.id)
+              } else {
+                console.error('Event publish failed:', message[3] || 'Unknown error')
+                reject(new Error(`Publish failed: ${message[3] || 'Unknown error'}`))
+              }
+              // Restore original message handler
+              this.relay!.onmessage = originalOnMessage
+            }
+          } catch (parseError) {
+            console.error('Error parsing publish response:', parseError)
+          }
+        }
 
         // Send the event
-        this.relay.send(['EVENT', signedEvent])
+        const eventMsg = JSON.stringify(['EVENT', signedEvent])
+        this.relay!.send(eventMsg)
+        console.log('📤 Sent EVENT for publishing')
       })
 
     } catch (error) {
@@ -175,6 +229,7 @@ export class NostrAuthService {
     }
     this.pool.close([this.config.relayUrl])
     this.isAuthenticated = false
+    this.authChallenge = null
   }
 
   /**
