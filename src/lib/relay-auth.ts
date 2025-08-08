@@ -1,5 +1,4 @@
-// src/lib/nostr-auth.ts
-import { SimplePool, getEventHash, nip42 } from 'nostr-tools'
+// src/lib/relay-auth.ts
 import type { NostrEvent } from 'nostr-tools'
 
 export interface AuthConfig {
@@ -13,13 +12,12 @@ export interface NostrSigner {
 }
 
 export class NostrAuthService {
-  private pool: SimplePool
   private relay: WebSocket | null = null
   private isAuthenticated = false
   private authChallenge: string | null = null
   
   constructor(private config: AuthConfig) {
-    this.pool = new SimplePool()
+    // Direct WebSocket implementation - no SimplePool needed
   }
 
   /**
@@ -227,7 +225,6 @@ export class NostrAuthService {
       this.relay.close()
       this.relay = null
     }
-    this.pool.close([this.config.relayUrl])
     this.isAuthenticated = false
     this.authChallenge = null
   }

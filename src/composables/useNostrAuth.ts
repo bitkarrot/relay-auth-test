@@ -1,6 +1,6 @@
 // src/composables/useNostrAuth.ts
-import { NostrAuthService } from '../lib/nostr-auth'
-import type { AuthConfig } from '../lib/nostr-auth'
+import { NostrAuthService } from '../lib/relay-auth'
+import type { AuthConfig } from '../lib/relay-auth'
 
 export interface UseNostrAuthOptions {
   relayUrl?: string

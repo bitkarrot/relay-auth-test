@@ -133,7 +133,7 @@ const relayUrl = process.env.HIVETALK_RELAYS || 'ws://localhost:3334'
 
   <script>
     // Import the NostrAuthService
-    import { NostrAuthService } from '../lib/nostr-auth.ts'
+    import { NostrAuthService } from '../lib/relay-auth.ts'
 
     // Initialize variables
     let authService: NostrAuthService | null = null
