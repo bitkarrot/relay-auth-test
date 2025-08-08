@@ -4,6 +4,12 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout>
   <style>
+    body {
+      background-color: #1f2937;
+      color: #f9fafb;
+      margin: 0;
+      min-height: 100vh;
+    }
     .container {
       max-width: 800px;
       margin: 0 auto;
@@ -13,7 +19,7 @@ import Layout from '../layouts/Layout.astro';
     
     h1 {
       text-align: center;
-      color: #1e293b;
+      color: #f9fafb;
       margin-bottom: 2rem;
     }
     
@@ -24,18 +30,18 @@ import Layout from '../layouts/Layout.astro';
     }
     
     .page-card {
-      border: 1px solid #e2e8f0;
+      border: 1px solid #374151;
       border-radius: 8px;
       padding: 1.5rem;
-      background: #f8fafc;
+      background: #374151;
       transition: all 0.2s ease;
     }
     
     .page-card:hover {
-      border-color: #3b82f6;
-      background: #f1f5f9;
+      border-color: #60a5fa;
+      background: #4b5563;
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
     
     .page-link {
@@ -57,29 +63,29 @@ import Layout from '../layouts/Layout.astro';
     .page-title {
       font-size: 1.25rem;
       font-weight: 600;
-      color: #1e293b;
+      color: #f9fafb;
       margin: 0 0 0.5rem 0;
     }
     
     .page-description {
-      color: #64748b;
+      color: #d1d5db;
       line-height: 1.6;
       margin: 0;
     }
     
     .intro {
       text-align: center;
-      color: #64748b;
+      color: #d1d5db;
       margin-bottom: 2rem;
       font-size: 1.1rem;
     }
     
     .docs-link {
       display: inline-block;
-      color: #3b82f6;
+      color: #60a5fa;
       text-decoration: none;
       font-weight: 500;
-      border: 1px solid #3b82f6;
+      border: 1px solid #60a5fa;
       padding: 0.5rem 1rem;
       border-radius: 4px;
       font-size: 0.9rem;
@@ -88,17 +94,17 @@ import Layout from '../layouts/Layout.astro';
     }
     
     .docs-link:hover {
-      background: #3b82f6;
-      color: white;
+      background: #60a5fa;
+      color: #1f2937;
     }
     
     .docs-section {
       text-align: center;
       margin-bottom: 2rem;
       padding: 1rem;
-      background: #f1f5f9;
+      background: #4b5563;
       border-radius: 6px;
-      border-left: 4px solid #3b82f6;
+      border-left: 4px solid #60a5fa;
     }
   </style>
 
@@ -109,9 +115,15 @@ import Layout from '../layouts/Layout.astro';
     </p>
     
     <div class="docs-section">
-      <p style="margin: 0 0 0.5rem 0; color: #64748b;">📚 Learn about the protocol:</p>
+      <p style="margin: 0 0 0.5rem 0; color: #f9fafb;">📚 Resources:</p>
       <a href="https://nostrhub.io/42/" target="_blank" class="docs-link">
         📖 NIP-42 Authentication Specification
+      </a>
+      <a href="https://github.com/bitkarrot/relay-auth-test" target="_blank" class="docs-link">
+        🔗 GitHub Repository
+      </a>
+      <a href="https://github.com/bitkarrot/relay-auth-test?tab=readme-ov-file#nostr-nip-42-auth-with-kind-30078-events---astro-implementation" target="_blank" class="docs-link">
+        📋 README Documentation
       </a>
     </div>
     
