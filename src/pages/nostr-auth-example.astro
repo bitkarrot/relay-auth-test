@@ -1,15 +1,19 @@
 ---
 // src/pages/nostr-auth-example.astro
+import Layout from '../layouts/Layout.astro';
 
 // Get relay URL from environment variable
 const relayUrl = process.env.HIVETALK_RELAYS || 'ws://localhost:3334'
 ---
 
-<html lang="en">
+<Layout>
+<!-- <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nostr NIP-42 AUTH Example</title>
+</head>
+<body> -->
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -95,8 +99,7 @@ const relayUrl = process.env.HIVETALK_RELAYS || 'ws://localhost:3334'
       margin: 10px 0;
     }
   </style>
-</head>
-<body>
+
   <div class="container">
     <h1>🔐 Nostr NIP-42 AUTH Example</h1>
     <p>This example demonstrates NIP-42 authentication followed by publishing a kind 30078 event.</p>
@@ -294,5 +297,5 @@ const relayUrl = process.env.HIVETALK_RELAYS || 'ws://localhost:3334'
       }
     })
   </script>
-</body>
-</html>
+<!-- </body>
+</html> -->

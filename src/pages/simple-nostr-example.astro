@@ -1,15 +1,20 @@
 ---
 // src/pages/simple-nostr-example.astro
+import Layout from '../layouts/Layout.astro';
 
 // Get relay URL from environment variable
 const relayUrl = process.env.HIVETALK_RELAYS || 'ws://localhost:3334'
 ---
 
-<html lang="en">
+<!-- <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Simple Nostr AUTH Example</title>
+</head>
+<body> -->
+
+<Layout>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -65,8 +70,7 @@ const relayUrl = process.env.HIVETALK_RELAYS || 'ws://localhost:3334'
       word-break: break-all;
     }
   </style>
-</head>
-<body>
+
   <div class="container">
     <h1>📱 Simple Nostr Example</h1>
     <p>Demonstrates the reusable NostrAuth composable.</p>
@@ -181,5 +185,7 @@ const relayUrl = process.env.HIVETALK_RELAYS || 'ws://localhost:3334'
       }
     })
   </script>
-</body>
-</html>
+</Layout>
+
+<!-- </body>
+</html> -->
