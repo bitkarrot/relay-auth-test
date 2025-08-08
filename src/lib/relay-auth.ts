@@ -181,7 +181,7 @@ export class NostrAuthService {
         this.relay!.onmessage = (event) => {
           // Call original handler first
           if (originalOnMessage) {
-            originalOnMessage.call(this.relay, event)
+            originalOnMessage.call(this.relay!, event)
           }
           
           try {
