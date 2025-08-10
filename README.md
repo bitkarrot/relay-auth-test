@@ -1,4 +1,4 @@
-# Nostr NIP-42 AUTH with Kind 30078 Events - Astro Implementation
+# Nostr NIP-42 AUTH with Kind 30078 Events - Demo Code
 
 4 Demos in this repo - This implementation provides a modular, reusable system for NIP-42 authentication and publishing kind 30078 (Parameterized Replaceable Events) in Astro applications using nostr-tools.
 
