@@ -2,6 +2,47 @@
 
 4 Demos in this repo - This implementation provides a modular, reusable system for NIP-42 authentication and publishing kind 30078 (Parameterized Replaceable Events) in Astro applications using nostr-tools.
 
+## 🔗 NIP-42 Authentication Flow
+
+1. **Connect to Relay**: Establish WebSocket connection
+2. **Request Challenge**: Send subscription to trigger AUTH challenge
+3. **Receive Challenge**: Relay responds with AUTH event containing challenge
+4. **Sign Response**: Create and sign kind 22242 AUTH event with challenge
+5. **Send AUTH**: Submit signed AUTH event to relay
+6. **Confirm Success**: Wait for OK response from relay
+7. **Maintain Connection**: Keep same connection for subsequent events
+
+```mermaid
+sequenceDiagram
+    participant Client as Nostr Client
+    participant Relay as Nostr Relay
+    
+    Note over Client, Relay: NIP-42 Authentication Flow
+    
+    Client->>Relay: 1. Establish WebSocket Connection
+    
+    Client->>Relay: 2. Send Subscription Request
+    Note left of Client: ["REQ", "sub_id", filters]
+    
+    Relay->>Client: 3. Send AUTH Challenge
+    Note right of Relay: ["AUTH", "challenge_string"]
+    
+    Note over Client: 4. Create and Sign AUTH Event
+    Note over Client: Kind 22242 event with challenge
+    
+    Client->>Relay: 5. Submit Signed AUTH Event
+    Note left of Client: ["AUTH", signed_event]
+    
+    Relay->>Client: 6. Authentication Success
+    Note right of Relay: ["OK", event_id, true, ""]
+    
+    Note over Client, Relay: 7. Connection Authenticated
+    Note over Client, Relay: Ready for subsequent requests
+    
+    Client->>Relay: Future authenticated requests
+    Relay->>Client: Normal responses
+```
+
 ## 🚀 Features
 
 - **NIP-42 Authentication**: Complete relay authentication flow
@@ -83,17 +124,6 @@ A higher-level composable that provides:
 - `createUIManager()`: Automatic DOM updates
 - Environment variable integration
 - Error state management
-
-
-## 🔗 NIP-42 Authentication Flow
-
-1. **Connect to Relay**: Establish WebSocket connection
-2. **Request Challenge**: Send subscription to trigger AUTH challenge
-3. **Receive Challenge**: Relay responds with AUTH event containing challenge
-4. **Sign Response**: Create and sign kind 22242 AUTH event with challenge
-5. **Send AUTH**: Submit signed AUTH event to relay
-6. **Confirm Success**: Wait for OK response from relay
-7. **Maintain Connection**: Keep same connection for subsequent events
 
 ## 📄 Kind 30078 Events
 
